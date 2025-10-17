@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Widget Harness - Test All Widgets</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body class="min-h-screen bg-slate-900 text-slate-50 font-sans">
+    <!-- Header -->
+    <header class="p-5 bg-slate-900/80 border-b border-slate-700/10">
+      <h1 class="m-0 mb-2.5 text-2xl font-semibold tracking-wider uppercase">
+        🎬 Widget Test Harness
+      </h1>
+      <div class="flex gap-2.5 items-center">
+        <span class="text-xs text-slate-400">THEME:</span>
+        <button 
+          id="theme-light" 
+          class="px-4 py-2 border border-slate-600/30 bg-slate-800/50 text-slate-50 rounded-md cursor-pointer text-sm hover:bg-slate-800/80 transition-colors"
+        >
+          Light
+        </button>
+        <button 
+          id="theme-dark" 
+          class="px-4 py-2 border border-blue-500/80 bg-blue-500/50 text-slate-50 rounded-md cursor-pointer text-sm hover:bg-blue-500/70 transition-colors"
+        >
+          Dark
+        </button>
+      </div>
+    </header>
+
+    <!-- Controls -->
+    <div class="p-5 flex gap-5 border-b border-slate-700/10 bg-slate-900/60">
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-semibold uppercase tracking-wider text-slate-400">Widget Type</label>
+        <select 
+          id="widget-selector"
+          class="px-3 py-2 border border-slate-600/30 bg-slate-800/50 text-slate-50 rounded-md cursor-pointer text-sm hover:bg-slate-800/80 transition-colors"
+        >
+          <option value="poster">Movie Poster</option>
+          <option value="list">Movie List</option>
+          <option value="preferences">Preferences</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-semibold uppercase tracking-wider text-slate-400">Test Scenario</label>
+        <select 
+          id="scenario-selector"
+          class="px-3 py-2 border border-slate-600/30 bg-slate-800/50 text-slate-50 rounded-md cursor-pointer text-sm hover:bg-slate-800/80 transition-colors"
+        >
+          <!-- Options will be populated based on widget type -->
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-semibold uppercase tracking-wider text-slate-400">Actions</label>
+        <button 
+          id="reload-widget"
+          class="px-3 py-2 border border-slate-600/30 bg-slate-800/50 text-slate-50 rounded-md cursor-pointer text-sm hover:bg-slate-800/80 transition-colors"
+        >
+          Reload Widget
+        </button>
+      </div>
+    </div>
+
+    <!-- Widget Container -->
+    <div class="p-6 flex justify-center items-start">
+      <div class="w-full max-w-3xl min-h-[400px] rounded-2xl bg-slate-900/60 shadow-[0_30px_60px_rgba(15,23,42,0.35)] overflow-hidden">
+        <div id="movie-poster-widget-root" class="block"></div>
+        <div id="movie-list-widget-root" class="hidden"></div>
+        <div id="preferences-widget-root" class="hidden"></div>
+      </div>
+    </div>
+
+    <script type="module">
+      // Initialize window.openai BEFORE importing widgets
+      window.openai = {
+        theme: 'dark',
+        displayMode: 'inline',
+        toolInput: {},
+        toolOutput: null,
+        toolResponseMetadata: null,
+        widgetState: null,
+        callTool: async (toolName, args) => {
+          console.log('📞 callTool:', toolName, args);
+          alert(`Tool called: ${toolName}\nArgs: ${JSON.stringify(args, null, 2)}`);
+          return { success: true, message: `Called ${toolName}` };
+        },
+        setWidgetState: async (state) => {
+          console.log('💾 setWidgetState:', state);
+          window.openai.widgetState = state;
+          return { success: true };
+        },
+      };
+
+      // Mock data scenarios
+      const mockData = {
+        poster: {
+          'Inception - Watched': {
+            success: true,
+            movie: {
+              tmdb_id: 27205,
+              title: 'Inception',
+              year: 2010,
+              overview: 'Cobb, a skilled thief who commits corporate espionage by infiltrating the subconscious of his targets is offered a chance to regain his old life as payment for a task considered to be impossible: "inception", the implantation of another person\'s idea into a target\'s subconscious.',
+              poster_url: 'https://image.tmdb.org/t/p/w500/ljsZTbVsrQSqZgWeep2B1QiDKuh.jpg',
+              backdrop_url: 'https://image.tmdb.org/t/p/original/s3TBrRGB1iav7gFOCNx3H31MoES.jpg',
+              rating: 8.4,
+              tagline: 'Your mind is the scene of the crime.',
+              director: 'Christopher Nolan',
+              runtime: 148,
+              budget: 160000000,
+              revenue: 829895144,
+              genres: [
+                { id: 28, name: 'Action' },
+                { id: 878, name: 'Science Fiction' },
+                { id: 53, name: 'Thriller' }
+              ],
+              cast: [
+                { name: 'Leonardo DiCaprio', character: 'Dom Cobb', profile_url: 'https://image.tmdb.org/t/p/w185/wo2hJpn04vbtmh0B9utCFdsQhxM.jpg' },
+                { name: 'Joseph Gordon-Levitt', character: 'Arthur', profile_url: 'https://image.tmdb.org/t/p/w185/z2FA8js799xqtfiFjBTicFYdfk.jpg' },
+                { name: 'Elliot Page', character: 'Ariadne', profile_url: 'https://image.tmdb.org/t/p/w185/eCeFgzS8bAM5TqSpjLJk8P8FPLl.jpg' }
+              ],
+              inWatchlist: false,
+              isWatched: true,
+              userRating: 5,
+              userNotes: 'Mind-blowing! Watched it 3 times and still discovering new details.'
+            }
+          },
+          'The Matrix - In Watchlist': {
+            success: true,
+            movie: {
+              tmdb_id: 603,
+              title: 'The Matrix',
+              year: 1999,
+              overview: 'Set in the 22nd century, The Matrix tells the story of a computer hacker who joins a group of underground insurgents fighting the vast and powerful computers who now rule the earth.',
+              poster_url: 'https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg',
+              director: 'Lana Wachowski',
+              runtime: 136,
+              budget: 63000000,
+              revenue: 467222728,
+              genres: [
+                { id: 28, name: 'Action' },
+                { id: 878, name: 'Science Fiction' }
+              ],
+              backdrop_url: 'https://image.tmdb.org/t/p/original/icmmSD4vTTDKOq2vvdulafOGw93.jpg',
+              rating: 8.2,
+              tagline: 'Welcome to the Real World.',
+              cast: [
+                { name: 'Keanu Reeves', character: 'Neo', profile_url: 'https://image.tmdb.org/t/p/w185/4D0PpNI0kmP58hgrwGC3wCjxhnm.jpg' },
+                { name: 'Laurence Fishburne', character: 'Morpheus', profile_url: 'https://image.tmdb.org/t/p/w185/8suOhUmPbfKqDQ17bB0MQW7HRM0.jpg' },
+                { name: 'Carrie-Anne Moss', character: 'Trinity', profile_url: 'https://image.tmdb.org/t/p/w185/xD4jTA3KmVp5Rq3aHcymL9DUGjD.jpg' }
+              ],
+              inWatchlist: true,
+              isWatched: false
+            }
+          },
+          'Top Gun Maverick - New Movie': {
+            success: true,
+            movie: {
+              tmdb_id: 361743,
+              title: 'Top Gun: Maverick',
+              year: 2022,
+              overview: 'After more than thirty years of service as one of the Navy\'s top aviators, Pete "Maverick" Mitchell is where he belongs, pushing the envelope as a courageous test pilot and dodging the advancement in rank that would ground him.',
+              poster_url: 'https://image.tmdb.org/t/p/w500/62HCnUTziyWcpDaBO2i1DX17ljH.jpg',
+              backdrop_url: 'https://image.tmdb.org/t/p/original/odJ4hx6g6vBt4lBWKFD1tI8WS4x.jpg',
+              rating: 8.3,
+              tagline: 'Feel the need... The need for speed.',
+              director: 'Joseph Kosinski',
+              runtime: 131,
+              budget: 170000000,
+              revenue: 1495696292,
+              genres: [
+                { id: 28, name: 'Action' },
+                { id: 18, name: 'Drama' }
+              ],
+              cast: [
+                { name: 'Tom Cruise', character: 'Pete "Maverick" Mitchell', profile_url: 'https://image.tmdb.org/t/p/w185/8qBylBsQf4llkGrWR3qAsOtOU8O.jpg' },
+                { name: 'Miles Teller', character: 'Bradley "Rooster" Bradshaw', profile_url: 'https://image.tmdb.org/t/p/w185/4IlQZMtiq9F7h3WW48OodSRaQ4s.jpg' },
+                { name: 'Jennifer Connelly', character: 'Penny Benjamin', profile_url: 'https://image.tmdb.org/t/p/w185/bXNxIKcJ5cNNW8QFrBPWcfpamericans.jpg' }
+              ],
+              inWatchlist: false,
+              isWatched: false
+            }
+          }
+        },
+        list: {
+          'Christopher Nolan Films': {
+            success: true,
+            movies: [
+              {
+                tmdb_id: 27205,
+                title: 'Inception',
+                year: 2010,
+                poster_url: 'https://image.tmdb.org/t/p/w200/ljsZTbVsrQSqZgWeep2B1QiDKuh.jpg',
+                rating: 8.4,
+                inWatchlist: false,
+                isWatched: true,
+                userRating: 5
+              },
+              {
+                tmdb_id: 157336,
+                title: 'Interstellar',
+                year: 2014,
+                poster_url: 'https://image.tmdb.org/t/p/w200/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
+                rating: 8.4,
+                inWatchlist: true,
+                isWatched: false
+              },
+              {
+                tmdb_id: 155,
+                title: 'The Dark Knight',
+                year: 2008,
+                poster_url: 'https://image.tmdb.org/t/p/w200/qJ2tW6WMUDux911r6m7haRef0WH.jpg',
+                rating: 9.0,
+                inWatchlist: false,
+                isWatched: true,
+                userRating: 5
+              },
+              {
+                tmdb_id: 272,
+                title: 'Batman Begins',
+                year: 2005,
+                poster_url: 'https://image.tmdb.org/t/p/w200/4MpN4kIEqUjW8OPtOQJXlTdHiJV.jpg',
+                rating: 7.7,
+                inWatchlist: false,
+                isWatched: false
+              },
+              {
+                tmdb_id: 49026,
+                title: 'The Dark Knight Rises',
+                year: 2012,
+                poster_url: 'https://image.tmdb.org/t/p/w200/hr0L2aueqlP2BYUblTTjmtn0hw4.jpg',
+                rating: 7.8,
+                inWatchlist: false,
+                isWatched: true,
+                userRating: 4
+              }
+            ],
+            count: 5
+          },
+          'Sci-Fi Favorites': {
+            success: true,
+            movies: [
+              {
+                tmdb_id: 603,
+                title: 'The Matrix',
+                year: 1999,
+                poster_url: 'https://image.tmdb.org/t/p/w200/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg',
+                rating: 8.2,
+                inWatchlist: true,
+                isWatched: false
+              },
+              {
+                tmdb_id: 62,
+                title: '2001: A Space Odyssey',
+                year: 1968,
+                poster_url: 'https://image.tmdb.org/t/p/w200/ve72VxNqjGM69Uky4WTo2bK6rfq.jpg',
+                rating: 8.1,
+                inWatchlist: false,
+                isWatched: true,
+                userRating: 5
+              },
+              {
+                tmdb_id: 78,
+                title: 'Blade Runner',
+                year: 1982,
+                poster_url: 'https://image.tmdb.org/t/p/w200/63N9uy8nd9j7Eog2axPQ8lbr3Wj.jpg',
+                rating: 7.9,
+                inWatchlist: false,
+                isWatched: true,
+                userRating: 4
+              }
+            ],
+            count: 3
+          },
+          'Empty Results': {
+            success: true,
+            movies: [],
+            count: 0
+          }
+        },
+        preferences: {
+          'Full Preferences': {
+            success: true,
+            preferences: [
+              {
+                key: 'favorite_genres',
+                value: ['Action', 'Sci-Fi', 'Thriller', 'Drama']
+              },
+              {
+                key: 'favorite_actors',
+                value: [
+                  { name: 'Leonardo DiCaprio', profile_url: 'https://image.tmdb.org/t/p/w185/wo2hJpn04vbtmh0B9utCFdsQhxM.jpg', id: 6193 },
+                  { name: 'Christian Bale', profile_url: 'https://image.tmdb.org/t/p/w185/3qx2QFUbG6t6IlzR0F9k3Z6Yhf7.jpg', id: 3894 },
+                  { name: 'Cillian Murphy', profile_url: 'https://image.tmdb.org/t/p/w185/dm6V24NjjvjMiCtbMkc8Y2WPm2e.jpg', id: 2037 }
+                ]
+              },
+              {
+                key: 'favorite_directors',
+                value: [
+                  { name: 'Christopher Nolan', profile_url: 'https://image.tmdb.org/t/p/w185/xuAIuYSmsUzKlUMBFGVZaWsY3DZ.jpg', id: 525 },
+                  { name: 'Denis Villeneuve', profile_url: 'https://image.tmdb.org/t/p/w185/5wKnDNPdYnVcD8JHWJAbjhXZbqS.jpg', id: 57130 }
+                ]
+              }
+            ],
+            count: 3
+          },
+          'Minimal Preferences': {
+            success: true,
+            preferences: [
+              {
+                key: 'favorite_genres',
+                value: ['Horror', 'Comedy']
+              }
+            ],
+            count: 1
+          },
+          'No Preferences': {
+            success: true,
+            preferences: [],
+            count: 0
+          }
+        }
+      };
+
+      // State
+      let currentWidget = 'poster';
+      let currentTheme = 'dark';
+      let currentScenario = Object.keys(mockData.poster)[0];
+
+      // Import widgets dynamically
+      let widgets = {};
+
+      async function loadWidgets() {
+        const [poster, list, preferences] = await Promise.all([
+          import('/src/widgets/poster.tsx'),
+          import('/src/widgets/list.tsx'),
+          import('/src/widgets/preferences.tsx')
+        ]);
+        console.log('✅ All widgets loaded');
+      }
+
+      // Update scenario dropdown
+      function updateScenarios() {
+        const scenarios = Object.keys(mockData[currentWidget]);
+        const selector = document.getElementById('scenario-selector');
+        selector.innerHTML = scenarios.map(s => 
+          `<option value="${s}" ${s === currentScenario ? 'selected' : ''}>${s}</option>`
+        ).join('');
+        currentScenario = scenarios[0];
+      }
+
+      // Setup mock OpenAI globals
+      function setupMockGlobals() {
+        const data = mockData[currentWidget][currentScenario];
+        
+        console.log('🔄 Updating globals:', { 
+          widget: currentWidget, 
+          scenario: currentScenario, 
+          theme: currentTheme,
+          dataKeys: Object.keys(data),
+          data 
+        });
+        
+        // Update existing window.openai properties
+        window.openai.theme = currentTheme;
+        window.openai.toolOutput = data;
+        window.openai.widgetState = null;
+
+        // Dispatch event to hydrate/re-hydrate widgets
+        window.dispatchEvent(
+          new CustomEvent('openai:set_globals', {
+            detail: { globals: window.openai },
+          }),
+        );
+        
+        console.log('✅ Mock globals updated. window.openai.toolOutput:', window.openai.toolOutput);
+      }
+
+      // Show/hide widgets
+      function switchWidget() {
+        const widgetIds = {
+          poster: 'movie-poster-widget-root',
+          list: 'movie-list-widget-root',
+          preferences: 'preferences-widget-root'
+        };
+        
+        Object.entries(widgetIds).forEach(([type, id]) => {
+          const root = document.getElementById(id);
+          if (!root) {
+            console.warn(`Widget root not found: ${id}`);
+            return;
+          }
+          if (type === currentWidget) {
+            root.classList.remove('hidden');
+            root.classList.add('block');
+          } else {
+            root.classList.remove('block');
+            root.classList.add('hidden');
+          }
+        });
+      }
+
+      // Update theme buttons
+      function updateThemeButtons() {
+        const lightBtn = document.getElementById('theme-light');
+        const darkBtn = document.getElementById('theme-dark');
+        
+        if (currentTheme === 'light') {
+          lightBtn.classList.add('border-blue-500/80', 'bg-blue-500/50');
+          lightBtn.classList.remove('border-slate-600/30', 'bg-slate-800/50');
+          darkBtn.classList.remove('border-blue-500/80', 'bg-blue-500/50');
+          darkBtn.classList.add('border-slate-600/30', 'bg-slate-800/50');
+        } else {
+          darkBtn.classList.add('border-blue-500/80', 'bg-blue-500/50');
+          darkBtn.classList.remove('border-slate-600/30', 'bg-slate-800/50');
+          lightBtn.classList.remove('border-blue-500/80', 'bg-blue-500/50');
+          lightBtn.classList.add('border-slate-600/30', 'bg-slate-800/50');
+        }
+      }
+
+      // Event listeners
+      document.getElementById('widget-selector').addEventListener('change', (e) => {
+        currentWidget = e.target.value;
+        updateScenarios();
+        switchWidget();
+        setupMockGlobals();
+      });
+
+      document.getElementById('scenario-selector').addEventListener('change', (e) => {
+        currentScenario = e.target.value;
+        setupMockGlobals();
+      });
+
+      document.getElementById('theme-light').addEventListener('click', () => {
+        currentTheme = 'light';
+        updateThemeButtons();
+        setupMockGlobals();
+      });
+
+      document.getElementById('theme-dark').addEventListener('click', () => {
+        currentTheme = 'dark';
+        updateThemeButtons();
+        setupMockGlobals();
+      });
+
+      document.getElementById('reload-widget').addEventListener('click', () => {
+        setupMockGlobals();
+      });
+
+      // Initialize
+      loadWidgets().then(() => {
+        updateScenarios();
+        switchWidget();
+        updateThemeButtons();
+        setupMockGlobals();
+      });
+    </script>
+  </body>
+</html>

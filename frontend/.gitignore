@@ -1,0 +1,14 @@
+# Build output
+dist/
+
+# Tailwind output
+src/output.css
+
+# Dependencies
+node_modules/
+
+# IDE
+.DS_Store
+*.swp
+*.swo
+

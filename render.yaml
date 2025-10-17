@@ -1,0 +1,75 @@
+services:
+  # Movie MCP Server - Web Service
+  - type: web
+    name: movie-mcp-server
+    runtime: node
+    plan: free
+    region: oregon
+    branch: main
+    rootDir: backend
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start:deploy
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      # Database connection (linked from Postgres service below)
+      - key: DATABASE_URL
+        fromDatabase:
+          name: movie-mcp-postgres
+          property: connectionString
+      # External API Keys (set these as secret in Render Dashboard)
+      - key: TMDB_API_KEY
+        sync: false
+      # LLM Provider Keys (at least one required)
+      # Priority: OpenAI (GPT-5) > Anthropic (Claude Sonnet 4.5) > Gemini (2.5 Flash)
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: MOVIE_POSTER_WIDGET_URL
+        fromService:
+          name: movie-mcp-widget
+          type: web
+          property: host
+      # Optional: Admin API key for initial user
+      - key: ADMIN_API_KEY
+        sync: false
+      # Redis cache URL (linked from Redis service below)
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: movie-cache
+          property: connectionString
+
+  - type: web
+    runtime: static
+    name: movie-mcp-widget
+    rootDir: frontend
+    staticPublishPath: ./dist
+    buildCommand: npm ci && npm run build
+    headers:
+      - path: /*
+        name: Access-Control-Allow-Origin
+        value: '*'
+
+ # A Key Value instance that allows only internal connections
+  - type: keyvalue
+    plan: free
+    name: movie-cache
+    ipAllowList: [] # Only allow internal connections
+
+databases:
+- name: movie-mcp-postgres
+  databaseName: movie_mcp_db
+  user: movie_mcp_user
+  plan: free
+  region: oregon
+  ipAllowList:
+  - source: 0.0.0.0/0
+    description: everywhere
+  postgresMajorVersion: "17"

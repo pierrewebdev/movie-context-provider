@@ -1,0 +1,48 @@
+{
+  "name": "movie-context-provider",
+  "version": "1.0.0",
+  "description": "Movie Context Provider - MCP server for managing movie watchlists with AI-powered recommendations",
+  "type": "module",
+  "main": "dist/src/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/src/index.js",
+    "start:deploy": "npm run migrate && npm start",
+    "migrate": "npx tsx scripts/migrate.ts",
+    "generate-key": "tsx scripts/generate-api-key.ts",
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "tsc --noEmit --watch --preserveWatchOutput",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "mcp",
+    "movies",
+    "tmdb",
+    "watchlist",
+    "ai"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "@google/generative-ai": "^0.21.0",
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "@types/express": "^5.0.3",
+    "@types/pg": "^8.15.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.1",
+    "ioredis": "^5.8.1",
+    "openai": "^4.73.0",
+    "p-retry": "^6.2.1",
+    "pg": "^8.13.1",
+    "tsx": "^4.19.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.4"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "vitest"],
+    "typeRoots": [
+      "./node_modules/@types",
+      "./node_modules/vitest/node"
+    ]
+  },
+  "include": ["src/tests/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+
