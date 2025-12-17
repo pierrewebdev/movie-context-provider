@@ -69,7 +69,9 @@ async function handleListTools() {
   // Log the get_movie_details tool specifically to verify _meta is included
   const movieDetailsTool = tools.find((t) => t.name === TOOL_NAMES.GET_MOVIE_DETAILS);
   if (movieDetailsTool) {
-    console.log('📋 get_movie_details tool definition:', JSON.stringify(movieDetailsTool, null, 2));
+    //console.log('📋 get_movie_details tool definition:', JSON.stringify(movieDetailsTool, null, 2));
+
+    console.log("Value of Tools", JSON.stringify(tools))
   }
   
   return { tools };
